@@ -100,6 +100,9 @@ static void write_cert(X509 *x509)
 
 int main(int argc, char **argv)
 {
+#ifndef OPENSSL_NO_ENGINE
+   char *key_pass = NULL;
+#endif
 	char *cert_src;
 
 	OpenSSL_add_all_algorithms();

@@ -103,7 +103,6 @@
 
 /* SPI sampling registers */
 #define SE_GENI_CGC_CTRL	(0x28)
-#define SE_GENI_CFG_SEQ_START	(0x84)
 #define SE_GENI_CFG_REG108	(0x2B0)
 #define SE_GENI_CFG_REG109	(0x2B4)
 #define CPOL_CTRL_SHFT	1
@@ -729,7 +728,7 @@ static struct msm_gpi_tre *setup_config0_tre(struct spi_transfer *xfer,
 	}
 
 	c0_tre->dword[0] = MSM_GPI_SPI_CONFIG0_TRE_DWORD0(pack, flags,
-								word_len);
+								word_len, 0);
 	c0_tre->dword[1] = MSM_GPI_SPI_CONFIG0_TRE_DWORD1(0, cs_clk_delay,
 							inter_words_delay);
 	c0_tre->dword[2] = MSM_GPI_SPI_CONFIG0_TRE_DWORD2(idx, div);
@@ -2623,7 +2622,7 @@ static int spi_geni_probe(struct platform_device *pdev)
 		}
 	}
 
-	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
+	ret = dma_set_mask_and_coherent(&pdev->dev, ~0ULL);
 	if (ret) {
 		ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
 		if (ret) {
