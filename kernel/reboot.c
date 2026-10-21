@@ -18,6 +18,13 @@
 #include <linux/syscalls.h>
 #include <linux/syscore_ops.h>
 #include <linux/uaccess.h>
+#ifdef CONFIG_KSU_SUSFS
+#include <linux/susfs_def.h>
+
+extern int ksu_susfs_handle_reboot(unsigned int cmd, void __user *payload);
+/* KernelSU legacy reboot supercall magic, paired with SUSFS_MAGIC. */
+#define KSU_SUSFS_REBOOT_MAGIC1 0xDEADBEEF
+#endif
 
 #include <trace/hooks/reboot.h>
 
@@ -707,6 +714,16 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	struct pid_namespace *pid_ns = task_active_pid_ns(current);
 	char buffer[256];
 	int ret = 0;
+
+#ifdef CONFIG_KSU_SUSFS
+	/* SUSFS uses its own magic pair; do not intercept legitimate reboots
+	 * or KernelSU-Next's separate manager-fd setup path. This function
+	 * runs in normal syscall context (user memory access is allowed).
+	 */
+	if ((unsigned int)magic1 == KSU_SUSFS_REBOOT_MAGIC1 &&
+	    (unsigned int)magic2 == SUSFS_MAGIC)
+		return ksu_susfs_handle_reboot(cmd, arg);
+#endif
 
 	/* We only trust the superuser with rebooting the system. */
 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))

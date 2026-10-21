@@ -1,0 +1,105 @@
+menu "KernelSU"
+
+config KSU
+	tristate "KernelSU function support"
+	depends on KPROBES && EXT4_FS
+	default y
+	help
+	  Enable kernel-level root privileges on Android System.
+	  Requires CONFIG_KPROBES for kernel hooking support.
+	  Requires CONFIG_EXT4_FS for `ext4_unregister_sysfs`.
+	  To compile as a module, choose M here: the
+	  module will be called kernelsu.
+
+config KSU_DEBUG
+	bool "KernelSU debug mode"
+	depends on KSU
+	default n
+	help
+	  Enable KernelSU debug mode.
+
+config KSU_DISABLE_MANAGER
+	bool "Disable KernelSU manager integration"
+	depends on KSU
+	default n
+	help
+	  Disable manager APK detection and manager-specific handling.
+	  Root will be used in place of manager-only functionality.
+
+config KSU_DISABLE_POLICY
+	bool "Disable KernelSU policy profiles"
+	depends on KSU
+	default n
+	help
+	  Disable per-app root/non-root profile customization.
+	  Escalation will always use the default full root profile, and
+	  non-root handling will follow the global umount policy only.
+
+config KSU_X86_PATCH_SYSCALL_DISPATCHER
+	bool "Dynamically patch x64's hardened syscall dispatcher to support syscall hooks"
+	depends on KSU && X86_64
+	default n
+	help
+	  Dynamically patch x64's hardened syscall dispatcher to support syscall hooks. This is a
+	  replacement for a kernel source code patch, and is useful for x86_64 LKM mode.
+
+# Built-in SUSFS support, matching the gki-android14-6.1 feature flags.
+# Keep this disabled until the KernelSU-Next inline-hook ABI port is complete.
+menu "KernelSU - SUSFS (port in progress)"
+
+config KSU_SUSFS
+    bool "KernelSU addon - SUSFS (requires compatibility port)"
+    depends on KSU=y && THREAD_INFO_IN_TASK
+    default n
+    help
+      Built-in SUSFS integration. This tree still needs the v3.4.2
+      exec/setuid/reboot API bridge and preinit work before it can be enabled.
+
+config KSU_SUSFS_SUS_PATH
+    bool "SUSFS suspicious path handling"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_SUS_MOUNT
+    bool "SUSFS suspicious mount handling"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_SUS_KSTAT
+    bool "SUSFS kstat spoofing"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_SPOOF_UNAME
+    bool "SUSFS uname spoofing"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_ENABLE_LOG
+    bool "SUSFS logging"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS
+    bool "SUSFS symbol hiding"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+    bool "SUSFS bootconfig or cmdline spoofing"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_OPEN_REDIRECT
+    bool "SUSFS open redirection"
+    depends on KSU_SUSFS
+    default y
+
+config KSU_SUSFS_SUS_MAP
+    bool "SUSFS memory mapping handling"
+    depends on KSU_SUSFS
+    default y
+
+endmenu
+
+endmenu
